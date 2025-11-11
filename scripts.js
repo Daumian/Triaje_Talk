@@ -146,6 +146,54 @@ function reiniciarEncuesta() {
     showPage('hoja1');
 }
 
+
+/**
+ * Simula el envío de la narración (aquí es donde iría el fetch a n8n)
+ * y actualiza los botones de la interfaz.
+ */
+function enviarNarrativa() {
+    // 1. Obtener el texto (para fines de webhook, aunque aquí solo lo leemos)
+    const narrativaTexto = document.getElementById('narrativa').value;
+    
+    // Aquí es donde harías un 'fetch' a tu webhook de n8n:
+    /*
+    fetch('URL_DE_TU_N8N_WEBHOOK', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            narrativa: narrativaTexto,
+            timestamp: new Date().toISOString()
+        }),
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Lógica para manejar la respuesta del webhook, si es necesario
+        console.log('Webhook Response:', data);
+    })
+    .catch(error => {
+        console.error('Error sending narrative:', error);
+    });
+    */
+
+    // 2. Ocultar los botones de navegación normales (Anterior y Enviar)
+    document.getElementById('narrative-buttons').style.display = 'none';
+
+    // 3. Ocultar el campo de texto si quieres un bloqueo total de la entrada
+    document.getElementById('narrativa').disabled = true;
+
+    // 4. Mostrar el mensaje de éxito y el botón de "Nuevo Triaje"
+    const afterSendMessage = document.getElementById('after-send-message');
+    afterSendMessage.style.display = 'block';
+
+    // 5. Aplicar un efecto visual (opcional: podrías cambiar el color del contenedor
+    // del campo de texto o del fieldset para indicar el estado)
+    
+    // Nota: Para fines del color "enviado", la lógica ahora es que el botón original 
+    // desaparece y es reemplazado por un mensaje de éxito, que es lo más claro.
+}
+
 // --- EVENT LISTENERS ---
 
 // Asegura que la hoja 1 se muestre al cargar la página
