@@ -163,7 +163,7 @@ function enviarNarrativa() {
     console.log("Texto de Narrativa a enviar:", narrativaTexto);
 
     // 🔗 Enviamos el texto al webhook de n8n
-    fetch("https://creactivehub.app.n8n.cloud/webhook-test/from-ghpages", {
+    fetch("https://creactivehub.app.n8n.cloud/webhook/from-ghpages", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
