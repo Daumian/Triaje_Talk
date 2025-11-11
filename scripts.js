@@ -5,10 +5,10 @@
 function showPage(pageId) {
     // Oculta todas las páginas
     var pages = document.querySelectorAll('.survey-page');
-    pages.forEach(function(page) {
+    pages.forEach(function (page) {
         page.style.display = 'none';
     });
-    
+
     // Muestra la página deseada
     var activePage = document.getElementById(pageId);
     if (activePage) {
@@ -39,17 +39,17 @@ function updateEdadOutput(value) {
  */
 function calculateScore() {
     let totalScore = 0;
-    
+
     // --- Hoja 2: Edad ---
     // Usamos '|| 0' para que si el campo está vacío, cuente como 0
-    let edad = parseInt(document.getElementById('edad').value) || 0; 
-    
+    let edad = parseInt(document.getElementById('edad').value) || 0;
+
     // Aquí defines tus reglas de puntaje
-    if (edad <= 1) { 
-        totalScore += 15; 
-    } else if (edad >= 90) { 
+    if (edad <= 1) {
+        totalScore += 15;
+    } else if (edad >= 90) {
         totalScore += 6;
-    } else if (edad >= 30 && edad < 90) { 
+    } else if (edad >= 30 && edad < 90) {
         totalScore += 2;
     }
 
@@ -69,7 +69,7 @@ function calculateScore() {
     if (document.getElementById('p_lesion').checked) { totalScore += 10; }
     if (document.getElementById('p_fiebre').checked) { totalScore += 5; }
     if (document.getElementById('p_dolor').checked) { totalScore += 3; }
-    
+
     // Actualizamos el marcador superior
     document.getElementById('score-value').innerText = totalScore;
 }
@@ -81,10 +81,10 @@ function calculateScore() {
 function mostrarResultados() {
     // 1. Recalcula por si acaso
     calculateScore();
-    
+
     // 2. Toma el valor del marcador superior (como NÚMERO)
     let finalScore = parseInt(document.getElementById('score-value').innerText);
-    
+
     // 3. Pone ese valor en la hoja final
     document.getElementById('final-score-value').innerText = finalScore;
 
@@ -112,15 +112,15 @@ function mostrarResultados() {
 
     // 4. Selecciona el nuevo elemento HTML
     let triageElement = document.getElementById('final-triage-level');
-    
+
     // 5. Asigna el texto (con innerHTML para los emojis) y el color
-    triageElement.innerHTML = levelText; 
+    triageElement.innerHTML = levelText;
     triageElement.style.color = levelColor;
     // --- FIN LÓGICA TRIAGE ---
 
     // 6. Oculta el marcador superior
     document.getElementById('score-display').style.display = 'none';
-    
+
     // 7. Muestra la página final
     showPage('hojaFinal');
 }
@@ -132,16 +132,16 @@ function mostrarResultados() {
 function reiniciarEncuesta() {
     // 1. Resetea todos los campos del formulario
     document.getElementById('multiStepForm').reset();
-    
+
     // 2. Recalcula el puntaje (ahora será 0)
     calculateScore();
-    
+
     // 3. Vuelve a mostrar el marcador superior
     document.getElementById('score-display').style.display = 'block';
 
     // 4. Limpia el texto de triage de la hoja final
     document.getElementById('final-triage-level').innerHTML = "";
-    
+
     // 5. Muestra la primera hoja
     showPage('hoja1');
 }
@@ -155,27 +155,32 @@ function reiniciarEncuesta() {
 
 
 function enviarNarrativa() {
-  const narrativaTexto = document.getElementById('narrativa').value;
+    // 1. Declaración ÚNICA de la variable.
+    const narrativaTexto = document.getElementById('narrativa').value;
 
-  // 🔗 Enviamos el texto al webhook de n8n
-  fetch("https://creactivehub.app.n8n.cloud/webhook-test/from-ghpages", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      narrativa: narrativaTexto,
-      origen: "github-pages"
+    // AÑADE ESTAS LÍNEAS PARA PROBAR
+    console.log("✅ Proceso de Envío Iniciado.");
+    console.log("Texto de Narrativa a enviar:", narrativaTexto);
+
+    // 🔗 Enviamos el texto al webhook de n8n
+    fetch("https://creactivehub.app.n8n.cloud/webhook-test/from-ghpages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            narrativa: narrativaTexto,
+            origen: "github-pages"
+        })
     })
-  })
-  .then(response => response.text())
-  .then(data => console.log("Respuesta de n8n:", data))
-  .catch(error => console.error("Error al enviar:", error));
+        .then(response => response.text())
+        .then(data => console.log("Respuesta de n8n:", data))
+        .catch(error => console.error("Error al enviar:", error));
 
-  // Ocultar botones y bloquear textarea
-  document.getElementById('narrative-buttons').style.display = 'none';
-  document.getElementById('narrativa').disabled = true;
+    // Ocultar botones y bloquear textarea
+    document.getElementById('narrative-buttons').style.display = 'none';
+    document.getElementById('narrativa').disabled = true;
 
-  // Mostrar mensaje de éxito
-  document.getElementById('after-send-message').style.display = 'block';
+    // Mostrar mensaje de éxito
+    document.getElementById('after-send-message').style.display = 'block';
 }
 
 
@@ -189,7 +194,7 @@ function enviarNarrativa() {
 // --- EVENT LISTENERS ---
 
 // Asegura que la hoja 1 se muestre al cargar la página
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     // Carga la 'hoja1' al inicio
     showPage('hoja1');
 });
