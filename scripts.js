@@ -8,7 +8,7 @@ function showPage(pageId) {
     pages.forEach(function (page) {
         page.style.display = 'none';
     });
-
+    
     // Muestra la página deseada
     var activePage = document.getElementById(pageId);
     if (activePage) {
@@ -142,7 +142,13 @@ function reiniciarEncuesta() {
     // 4. Limpia el texto de triage de la hoja final
     document.getElementById('final-triage-level').innerHTML = "";
 
-    // 5. Muestra la primera hoja
+    // AÑADIR ESTAS LÍNEAS PARA REHABILITAR LA NARRATIVA
+    // 5. Rehabilita el campo de texto de la narrativa y muestra sus botones
+    document.getElementById('narrativa').disabled = false;
+    document.getElementById('narrative-buttons').style.display = 'block';
+    document.getElementById('after-send-message').style.display = 'none'; // Ocultar mensaje de éxito
+
+    // 6. Muestra la primera hoja
     showPage('hoja1');
 }
 
