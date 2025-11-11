@@ -211,6 +211,17 @@ input[type="range"] {
     border-color: #999;
 }
 
+/* Estilo para el área de texto de narración */
+#hoja4_narrativa textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box; /* Asegura que padding no aumente el ancho */
+    resize: vertical; /* Permite redimensionar solo verticalmente */
+    margin-top: 5px;
+}
+
 /* Estilo cuando el radio oculto está seleccionado */
 .hidden-radio-choice:checked + .small-choice-button {
     background-color: #007bff;
