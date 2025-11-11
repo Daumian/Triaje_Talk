@@ -1,11 +1,147 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-  <meta charset="utf-8">
-  <title>Mi primer GitHub Page</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Encuesta Médica con Puntaje</title>
+    
+    <link rel="stylesheet" href="style.css">
+
 </head>
-<body style="font-family: sans-serif; text-align: center; margin-top: 50px;">
-  <h1>¡Hola mundo desde GitHub Pages! 🌍</h1>
-  <p>Esto es una prueba para conectar con n8n 💫</p>
+<body>
+
+    <div id="score-display">
+        Puntaje de Peligro: <span id="score-value">0</span>
+    </div>
+
+    <form id="multiStepForm" onsubmit="return false;">
+
+        <div id="hoja1" class="survey-page">
+            <fieldset>
+                <legend>Hoja 1: Identificación</legend>
+                <label>¿Quién está respondiendo?</label>
+                
+                <input type="radio" id="paciente" name="respondiente" value="paciente" required class="hidden-radio-choice">
+                <label for="paciente" class="big-choice-button" onclick="showPage('hoja2')">
+                    YO (Paciente)
+                </label>
+                
+                <input type="radio" id="acompanante" name="respondiente" value="acompanante" class="hidden-radio-choice">
+                <label for="acompanante" class="big-choice-button" onclick="showPage('hoja2')">
+                    Un Acompañante
+                </label>
+            </fieldset>
+            
+        </div>
+
+        <div id="hoja2" class="survey-page">
+            <fieldset>
+                <legend>Hoja 2: Datos del Paciente</legend>
+
+                <label for="edad">¿Edad? <span id="edad-output">30</span> años</label>
+                <div class="range-slider-container">
+                    <span>&lt; 1</span> <input type="range" id="edad" name="edad" min="0" max="100" value="30" oninput="updateEdadOutput(this.value)">
+                    <span>99+</span> </div>
+                
+                <label style="margin-top: 20px;">¿Sexo?</label>
+                <div class="choice-group">
+                    <input type="radio" id="mujer" name="sexo" value="mujer" required class="hidden-radio-choice">
+                    <label for="mujer" class="small-choice-button">Mujer</label>
+                    
+                    <input type="radio" id="hombre" name="sexo" value="hombre" class="hidden-radio-choice">
+                    <label for="hombre" class="small-choice-button">Hombre</label>
+                </div>
+
+                <label style="margin-top: 20px;">¿Embarazo? (Solo si aplica)</label>
+                <div class="choice-group">
+                    <input type="radio" id="emb_si" name="embarazo" value="si" class="hidden-radio-choice">
+                    <label for="emb_si" class="small-choice-button">Sí</label>
+                    
+                    <input type="radio" id="emb_no" name="embarazo" value="no" class="hidden-radio-choice">
+                    <label for="emb_no" class="small-choice-button">No</label>
+                </div>
+
+            </fieldset>
+            <div class="nav-buttons">
+                <button type="button" onclick="showPage('hoja1')">&larr; Anterior</button>
+                <button type="button" onclick="showPage('hoja3')">Siguiente &rarr;</button>
+            </div>
+        </div>
+
+        <div id="hoja3" class="survey-page">
+            <fieldset>
+                <legend>Hoja 3: Síntomas Graves</legend>
+                <label>¿Tiene alguno de estos síntomas?</label>
+                <ul>
+                    <li>Pérdida de conocimiento</li>
+                    <li>Dificultad para Respirar</li>
+                    <li>Sangrado Activo</li>
+                    <li>Piel muy fría</li>
+                </ul>
+                
+                <div class="choice-group">
+                    <input type="radio" id="sintomas_si" name="sintomas_graves" value="si" required class="hidden-radio-choice">
+                    <label for="sintomas_si" class="small-choice-button">Sí</label>
+                    
+                    <input type="radio" id="sintomas_no" name="sintomas_graves" value="no" class="hidden-radio-choice">
+                    <label for="sintomas_no" class="small-choice-button">No</label>
+                </div>
+
+            </fieldset>
+            <div class="nav-buttons">
+                <button type="button" onclick="showPage('hoja2')">&larr; Anterior</button>
+                <button type="button" onclick="showPage('hoja4')">Siguiente &rarr;</button>
+            </div>
+        </div>
+
+        <div id="hoja4" class="survey-page">
+            <fieldset>
+                <legend>Hoja 4: Problema Principal</legend>
+                <label>(Puedes elegir uno o más)</label>
+                <input type="checkbox" id="p_dolor" name="problema[]" value="dolor">
+                <label for="p_dolor">Dolor</label><br>
+                <input type="checkbox" id="p_lesion" name="problema[]" value="lesion">
+                <label for="p_lesion">Lesión / Accidente</label><br>
+                <input type="checkbox" id="p_fiebre" name="problema[]" value="fiebre">
+                <label for="p_fiebre">Fiebre / Infección</label><br>
+                <input type="checkbox" id="p_neuro" name="problema[]" value="neurologico">
+                <label for="p_neuro">Problema Neurológico</label><br>
+                <input type="checkbox" id="p_resp" name="problema[]" value="respiratorio">
+                <label for="p_resp">Problema Respiratorio</label><br>
+                <input type="checkbox" id="p_digest" name="problema[]" value="digestivo_urinario">
+                <label for="p_digest">Problema digestivo / urinario</label><br>
+                <input type="checkbox" id="p_empeoro" name="problema[]" value="condicion_empeoro">
+                <label for="p_empeoro">Condición que empeoró</label><br>
+                <input type="checkbox" id="p_admin" name="problema[]" value="administrativo">
+                <label for="p_admin">Administrativo</label><br>
+                <input type="checkbox" id="p_otro" name="problema[]" value="otro">
+                <label for="p_otro">Otro Motivo</label><br>
+            </fieldset>
+            <div class="nav-buttons">
+                <button type="button" onclick="showPage('hoja3')">&larr; Anterior</button>
+                <button type="button" class="submit-button" onclick="mostrarResultados()">Ver Resultados</button>
+            </div>
+        </div>
+
+        <div id="hojaFinal" class="survey-page">
+            <fieldset>
+                <legend>Resultados de la Encuesta</legend>
+                
+                <h2 style="text-align: center;">Puntaje Total de Peligro:</h2>
+                <span id="final-score-value">0</span>
+                
+                <h2 id="final-triage-level" style="text-align: center; margin-top: 20px;">
+                    </h2>
+
+            </fieldset>
+            <div class="nav-buttons center-button">
+                <button type="button" onclick="reiniciarEncuesta()">Reiniciar Encuesta</button>
+            </div>
+        </div>
+
+    </form>
+
+    <script src="scripts.js"></script>
+
 </body>
 </html>
