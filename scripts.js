@@ -152,21 +152,45 @@ function reiniciarEncuesta() {
  * Simula el envío de la narración (aquí es donde iría el fetch a n8n)
  * y actualiza los botones de la interfaz.
  */
-
-
 function enviarNarrativa() {
-    // 1. Declaración ÚNICA de la variable.
     const narrativaTexto = document.getElementById('narrativa').value;
 
-    // AÑADE ESTAS LÍNEAS PARA PROBAR
+    // --- RECOLECCIÓN DE DATOS ADICIONALES ---
+    // 1. Respondiente (Paciente o Acompañante)
+    const respondienteElement = document.querySelector('input[name="respondiente"]:checked');
+    const respondiente = respondienteElement ? respondienteElement.value : 'No Seleccionado';
+
+    // 2. Edad
+    const edad = document.getElementById('edad').value;
+
+    // 3. Sexo
+    const sexoElement = document.querySelector('input[name="sexo"]:checked');
+    const sexo = sexoElement ? sexoElement.value : 'No Seleccionado';
+
+    // 4. Embarazo
+    const embarazoElement = document.querySelector('input[name="embarazo"]:checked');
+    const embarazo = embarazoElement ? embarazoElement.value : 'No Aplica';
+    // ----------------------------------------
+
     console.log("✅ Proceso de Envío Iniciado.");
     console.log("Texto de Narrativa a enviar:", narrativaTexto);
+    console.log("Respondiente:", respondiente);
+    console.log("Edad:", edad);
+    console.log("Sexo:", sexo);
+    console.log("Embarazo:", embarazo);
+
 
     // 🔗 Enviamos el texto al webhook de n8n
     fetch("https://creactivehub.app.n8n.cloud/webhook/from-ghpages", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+            // Datos nuevos añadidos
+            respondiente: respondiente,
+            edad: edad,
+            sexo: sexo,
+            embarazo: embarazo,
+            // Dato existente
             narrativa: narrativaTexto,
             origen: "github-pages"
         })
@@ -182,9 +206,6 @@ function enviarNarrativa() {
     // Mostrar mensaje de éxito
     document.getElementById('after-send-message').style.display = 'block';
 }
-
-
-
 
 // --- EVENT LISTENERS ---
 
