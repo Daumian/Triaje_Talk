@@ -124,6 +124,24 @@
             </div>
         </div>
 
+        <div id="hoja4_narrativa" class="survey-page">
+            <fieldset>
+                <legend>Hoja 4: Narración de Síntomas</legend>
+                <label for="narrativa">Por favor, describe detalladamente tus síntomas, cuándo comenzaron y qué has hecho al respecto:</label>
+                <textarea id="narrativa" name="narrativa" rows="8" placeholder="Ej: Dolor en el pecho que comenzó hace 3 horas, con dificultad para respirar al caminar..."></textarea>
+            </fieldset>
+            
+            <div id="narrative-buttons" class="nav-buttons">
+                <button type="button" onclick="showPage('hoja2')">&larr; Anterior</button>
+                <button type="button" id="send-narrative-btn" onclick="enviarNarrativa()" class="submit-button">Enviar al Triage</button>
+            </div>
+
+            <div id="after-send-message" style="display: none; text-align: center; margin-top: 20px;">
+                <p style="font-weight: bold; color: #28a745;">✅ Narración enviada. Recibirás una respuesta pronto.</p>
+                <button type="button" onclick="reiniciarEncuesta()" style="background-color: #007bff; color: white;">Nuevo Triaje</button>
+            </div>
+        </div>
+
         <div id="hojaFinal" class="survey-page">
             <fieldset>
                 <legend>Resultados de la Encuesta</legend>
