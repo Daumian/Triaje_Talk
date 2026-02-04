@@ -1,231 +1,227 @@
+let sintomasScore = {};
+
+// 1. CARGA INICIAL Y RENDERIZADO DINÁMICO
+fetch("sintomas.json")
+  .then(res => res.json())
+  .then(data => {
+    sintomasScore = data;
+    renderizarSintomas(); // Genera la Hoja 4 automáticamente
+  })
+  .catch(err => console.error("Error cargando sintomas.json", err));
+
 /**
- * Muestra una página específica del formulario y oculta las demás.
- * @param {string} pageId - El ID del elemento div de la página a mostrar (ej: 'hoja1').
+ * Genera el HTML de la Hoja 4 basándose en el JSON.
+ * Crea títulos para los padres y listas para los hijos.
  */
-function showPage(pageId) {
-    // Oculta todas las páginas
-    var pages = document.querySelectorAll('.survey-page');
-    pages.forEach(function (page) {
-        page.style.display = 'none';
+
+function renderizarSintomas() {
+    const contenedor = document.getElementById('contenedor-sintomas');
+    if (!contenedor) return;
+    contenedor.innerHTML = ''; // Limpiar contenedor
+
+    Object.entries(sintomasScore).forEach(([idPadre, info]) => {
+        // FILTRO: Solo procesar IDs que empiecen con 'p_' y omitir config_puntajes
+        if (!idPadre.startsWith('p_')) return;
+
+        // Creamos el bloque del síntoma principal (Padre)
+        const divPadre = document.createElement('div');
+        divPadre.className = 'grupo-sintoma';
+        divPadre.style.marginBottom = "15px";
+
+        // Usamos la propiedad 'texto' del JSON o transformamos el ID si no existe
+        const nombreMostrar = info.texto || idPadre.replace('p_', '').toUpperCase();
+
+        divPadre.innerHTML = `
+            <div class="padre-row" style="background: #f8f9fa; padding: 10px; border-radius: 5px;">
+                <input type="checkbox" id="${idPadre}" onchange="toggleHijos('${idPadre}')">
+                <label for="${idPadre}"><strong>${nombreMostrar}</strong></label>
+            </div>
+            <div id="sub_${idPadre}" class="hijos-container" style="display:none; margin-left: 30px; margin-top: 10px;">
+            </div>
+        `;
+
+        contenedor.appendChild(divPadre);
+
+        // Si el padre tiene hijos, los renderizamos dentro de su contenedor
+        if (info.children) {
+            const subContenedor = divPadre.querySelector(`#sub_${idPadre}`);
+            Object.entries(info.children).forEach(([idHijo, infoHijo]) => {
+                const nombreHijo = (typeof infoHijo === 'object' ? infoHijo.texto : idHijo.replace(/_/g, ' '));
+                
+                const divHijo = document.createElement('div');
+                divHijo.style.marginBottom = "5px";
+                divHijo.innerHTML = `
+                    <input type="checkbox" id="${idHijo}" onchange="calculateScore()">
+                    <label for="${idHijo}">${nombreHijo}</label>
+                `;
+                subContenedor.appendChild(divHijo);
+            });
+        }
     });
-    
-    // Muestra la página deseada
-    var activePage = document.getElementById(pageId);
-    if (activePage) {
-        activePage.style.display = 'block';
-    }
 }
 
-// --- NUEVA FUNCIÓN (Añadir a scripts.js) ---
+/**
+ * Muestra/Oculta los subtítulos y recalcula el puntaje
+ */
+function toggleHijos(idPadre) {
+    const checkboxPadre = document.getElementById(idPadre);
+    const subContenedor = document.getElementById(`sub_${idPadre}`);
+    
+    if (subContenedor) {
+        // CAMBIO: Usamos 'grid' para activar las dos columnas del CSS
+        subContenedor.style.display = checkboxPadre.checked ? 'grid' : 'none';
+        
+        // Si desmarcamos al padre, desmarcamos automáticamente a todos los hijos
+        if (!checkboxPadre.checked) {
+            const hijos = subContenedor.querySelectorAll('input[type="checkbox"]');
+            hijos.forEach(h => h.checked = false);
+        }
+    }
+    // Recalcular el puntaje siempre al final
+    calculateScore();
+}
 
 /**
- * Actualiza el texto que muestra la edad seleccionada en el slider.
- * @param {string} value - El valor actual del slider (0-100).
+ * Cambia entre páginas (SPA)
+ */
+function showPage(pageId) {
+    document.querySelectorAll('.survey-page').forEach(page => {
+        page.style.display = 'none';
+    });
+    const activePage = document.getElementById(pageId);
+    if (activePage) activePage.style.display = 'block';
+}
+
+/**
+ * Actualiza el slider de edad
  */
 function updateEdadOutput(value) {
     const output = document.getElementById('edad-output');
-    if (value == 0) {
-        output.innerText = "< 1";
-    } else if (value == 100) {
-        output.innerText = "99+";
-    } else {
-        output.innerText = value;
-    }
+    output.innerText = (value == 0) ? "< 1" : (value == 100) ? "99+" : value;
 }
 
 /**
- * Calcula el puntaje total de peligro basado en las selecciones del formulario
- * y actualiza el marcador superior.
+ * CÁLCULO DE PUNTAJE (Lógica jerárquica)
  */
+
+
 function calculateScore() {
     let totalScore = 0;
+    const config = sintomasScore.config_puntajes; // Acceso a la nueva configuración
 
-    // --- Hoja 2: Edad ---
-    // Usamos '|| 0' para que si el campo está vacío, cuente como 0
-    let edad = parseInt(document.getElementById('edad').value) || 0;
+    if (config) {
+        // 1. Puntaje por Edad Dinámico
+        let edad = parseInt(document.getElementById('edad').value) || 0;
+        const rangoEncontrado = config.edad.find(rango => edad >= rango.min && edad <= rango.max);
+        if (rangoEncontrado) {
+            totalScore += rangoEncontrado.puntos;
+        }
 
-    // Aquí defines tus reglas de puntaje
-    if (edad <= 1) {
-        totalScore += 15;
-    } else if (edad >= 90) {
-        totalScore += 6;
-    } else if (edad >= 30 && edad < 90) {
-        totalScore += 2;
+        // 2. Embarazo Dinámico
+        if (document.getElementById('emb_si').checked) {
+            totalScore += config.embarazo;
+        }
+
+        // 3. Síntomas Graves Dinámico
+        if (document.getElementById('sintomas_si').checked) {
+            totalScore += config.graves;
+        }
     }
 
-    // --- Hoja 2: Embarazo ---
-    if (document.getElementById('emb_si').checked) {
-        totalScore += 30;
-    }
+    // 4. Síntomas Dinámicos (Padres e Hijos) - Se mantiene igual
+    Object.entries(sintomasScore).forEach(([idPadre, info]) => {
+        // Filtramos para no procesar la "config_puntajes" como si fuera un síntoma
+        if (idPadre.startsWith('p_')) { 
+            const checkPadre = document.getElementById(idPadre);
+            if (checkPadre && checkPadre.checked) {
+                totalScore += (info.score || 0);
+                if (info.children) {
+                    Object.entries(info.children).forEach(([idHijo, infoHijo]) => {
+                        const checkHijo = document.getElementById(idHijo);
+                        if (checkHijo && checkHijo.checked) {
+                            totalScore += (infoHijo.score || 0);
+                        }
+                    });
+                }
+            }
+        }
+    });
 
-    // --- Hoja 3: Síntomas Graves ---
-    if (document.getElementById('sintomas_si').checked) {
-        totalScore += 50;
-    }
-
-    // --- Hoja 4: Problemas (Checkboxes) ---
-    if (document.getElementById('p_resp').checked) { totalScore += 5; }
-    if (document.getElementById('p_neuro').checked) { totalScore += 15; }
-    if (document.getElementById('p_lesion').checked) { totalScore += 10; }
-    if (document.getElementById('p_fiebre').checked) { totalScore += 5; }
-    if (document.getElementById('p_dolor').checked) { totalScore += 3; }
-
-    // Actualizamos el marcador superior
     document.getElementById('score-value').innerText = totalScore;
 }
 
+
 /**
- * Se llama al presionar 'Ver Resultados'.
- * Calcula el Triage y muestra la hoja final.
+ * Muestra los resultados finales según el puntaje
  */
 function mostrarResultados() {
-    // 1. Recalcula por si acaso
     calculateScore();
-
-    // 2. Toma el valor del marcador superior (como NÚMERO)
-    let finalScore = parseInt(document.getElementById('score-value').innerText);
-
-    // 3. Pone ese valor en la hoja final
+    const finalScore = parseInt(document.getElementById('score-value').innerText);
     document.getElementById('final-score-value').innerText = finalScore;
 
-    // --- Lógica de Triage ---
     let levelText = "";
     let levelColor = "";
 
-    // !!! IMPORTANTE: Ajusta estos rangos de puntaje según tu criterio !!!
-    if (finalScore >= 40) {
-        levelText = "🔴 Rojo (0 min)";
-        levelColor = "#e74c3c"; // Rojo
-    } else if (finalScore >= 20) {
-        levelText = "🟠 Naranja (≤10 min)";
-        levelColor = "#e67e22"; // Naranja
-    } else if (finalScore >= 10) {
-        levelText = "🟡 Amarillo (≤60 min)";
-        levelColor = "#f1c40f"; // Amarillo
-    } else if (finalScore >= 3) {
-        levelText = "🟢 Verde (≤120 min)";
-        levelColor = "#2ecc71"; // Verde
-    } else {
-        levelText = "🔵 Azul (≤240 min)";
-        levelColor = "#3498db"; // Azul
-    }
+    if (finalScore >= 40) { levelText = "🔴 Rojo (Atención Inmediata)"; levelColor = "#e74c3c"; }
+    else if (finalScore >= 20) { levelText = "🟠 Naranja (Urgencia)"; levelColor = "#e67e22"; }
+    else if (finalScore >= 10) { levelText = "🟡 Amarillo (Diferable)"; levelColor = "#f1c40f"; }
+    else if (finalScore >= 3) { levelText = "🟢 Verde (No Urgente)"; levelColor = "#2ecc71"; }
+    else { levelText = "🔵 Azul (Consulta General)"; levelColor = "#3498db"; }
 
-    // 4. Selecciona el nuevo elemento HTML
-    let triageElement = document.getElementById('final-triage-level');
-
-    // 5. Asigna el texto (con innerHTML para los emojis) y el color
+    const triageElement = document.getElementById('final-triage-level');
     triageElement.innerHTML = levelText;
     triageElement.style.color = levelColor;
-    // --- FIN LÓGICA TRIAGE ---
 
-    // 6. Oculta el marcador superior
     document.getElementById('score-display').style.display = 'none';
-
-    // 7. Muestra la página final
     showPage('hojaFinal');
 }
 
 /**
- * Se llama al presionar 'Reiniciar Encuesta'.
- * Resetea el formulario, recalcula (a 0) y vuelve a la hoja 1.
- */
-function reiniciarEncuesta() {
-    // 1. Resetea todos los campos del formulario
-    document.getElementById('multiStepForm').reset();
-
-    // 2. Recalcula el puntaje (ahora será 0)
-    calculateScore();
-
-    // 3. Vuelve a mostrar el marcador superior
-    document.getElementById('score-display').style.display = 'block';
-
-    // 4. Limpia el texto de triage de la hoja final
-    document.getElementById('final-triage-level').innerHTML = "";
-
-    // AÑADIR ESTAS LÍNEAS PARA REHABILITAR LA NARRATIVA
-    // 5. Rehabilita el campo de texto de la narrativa y muestra sus botones
-    document.getElementById('narrativa').disabled = false;
-    document.getElementById('narrative-buttons').style.display = 'block';
-    document.getElementById('after-send-message').style.display = 'none'; // Ocultar mensaje de éxito
-
-    // 6. Muestra la primera hoja
-    showPage('hoja1');
-}
-
-
-
-/**
- * Simula el envío de la narración (aquí es donde iría el fetch a n8n)
- * y actualiza los botones de la interfaz.
+ * Envío de datos a n8n
  */
 function enviarNarrativa() {
-    const narrativaTexto = document.getElementById('narrativa').value;
+    const formData = {
+        respondiente: document.querySelector('input[name="respondiente"]:checked')?.value || 'N/A',
+        edad: document.getElementById('edad').value,
+        sexo: document.querySelector('input[name="sexo"]:checked')?.value || 'N/A',
+        embarazo: document.querySelector('input[name="embarazo"]:checked')?.value || 'no',
+        narrativa: document.getElementById('narrativa').value,
+        puntaje: document.getElementById('score-value').innerText,
+        origen: "github-pages"
+    };
 
-    // --- RECOLECCIÓN DE DATOS ADICIONALES ---
-    // 1. Respondiente (Paciente o Acompañante)
-    const respondienteElement = document.querySelector('input[name="respondiente"]:checked');
-    const respondiente = respondienteElement ? respondienteElement.value : 'No Seleccionado';
-
-    // 2. Edad
-    const edad = document.getElementById('edad').value;
-
-    // 3. Sexo
-    const sexoElement = document.querySelector('input[name="sexo"]:checked');
-    const sexo = sexoElement ? sexoElement.value : 'No Seleccionado';
-
-    // 4. Embarazo
-    const embarazoElement = document.querySelector('input[name="embarazo"]:checked');
-    const embarazo = embarazoElement ? embarazoElement.value : 'No Aplica';
-    // ----------------------------------------
-
-    console.log("✅ Proceso de Envío Iniciado.");
-    console.log("Texto de Narrativa a enviar:", narrativaTexto);
-    console.log("Respondiente:", respondiente);
-    console.log("Edad:", edad);
-    console.log("Sexo:", sexo);
-    console.log("Embarazo:", embarazo);
-
-
-    // 🔗 Enviamos el texto al webhook de n8n
     fetch("https://creactivehub.app.n8n.cloud/webhook/from-ghpages", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            // Datos nuevos añadidos
-            respondiente: respondiente,
-            edad: edad,
-            sexo: sexo,
-            embarazo: embarazo,
-            // Dato existente
-            narrativa: narrativaTexto,
-            origen: "github-pages"
-        })
+        body: JSON.stringify(formData)
     })
-        .then(response => response.text())
-        .then(data => console.log("Respuesta de n8n:", data))
-        .catch(error => console.error("Error al enviar:", error));
-
-    // Ocultar botones y bloquear textarea
-    document.getElementById('narrative-buttons').style.display = 'none';
-    document.getElementById('narrativa').disabled = true;
-
-    // Mostrar mensaje de éxito
-    document.getElementById('after-send-message').style.display = 'block';
+    .then(() => {
+        document.getElementById('narrative-buttons').style.display = 'none';
+        document.getElementById('narrativa').disabled = true;
+        document.getElementById('after-send-message').style.display = 'block';
+    })
+    .catch(err => console.error("Error al enviar:", err));
 }
 
-// --- EVENT LISTENERS ---
-
-// Asegura que la hoja 1 se muestre al cargar la página
-document.addEventListener('DOMContentLoaded', function () {
-    // Carga la 'hoja1' al inicio
+/**
+ * Reset completo del sistema
+ */
+function reiniciarEncuesta() {
+    document.getElementById('multiStepForm').reset();
+    document.getElementById('score-display').style.display = 'block';
+    document.getElementById('narrativa').disabled = false;
+    document.getElementById('narrative-buttons').style.display = 'block';
+    document.getElementById('after-send-message').style.display = 'none';
+    
+    // Ocultar todos los subcontenedores de síntomas
+    document.querySelectorAll('.hijos-container').forEach(c => c.style.display = 'none');
+    
+    calculateScore();
     showPage('hoja1');
-});
+}
 
-// Asigna los listeners al formulario para recalcular el puntaje
-const form = document.getElementById('multiStepForm');
-
-// Se activa cuando haces clic en un radio o checkbox
-form.addEventListener('change', calculateScore);
-
-// Se activa CADA VEZ que escribes una letra en un campo (como la edad)
-form.addEventListener('input', calculateScore);
+// Inicialización
+document.addEventListener('DOMContentLoaded', () => showPage('hoja1'));
+const mainForm = document.getElementById('multiStepForm');
+mainForm.addEventListener('change', calculateScore);
+mainForm.addEventListener('input', calculateScore);

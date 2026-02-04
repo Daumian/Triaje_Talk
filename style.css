@@ -228,3 +228,72 @@ input[type="range"] {
     color: white;
     border-color: #007bff;
 }
+
+/* =========================================
+   CAMBIOS PARA EL ESTILO CLÍNICO PRO
+   ========================================= */
+
+/* 1. El contenedor principal de cada síntoma ahora es una "tarjeta" */
+.grupo-sintoma {
+    border-left: 5px solid #3182ce; /* La barra azul lateral que te gustó */
+    background: #ffffff;
+    margin-bottom: 15px;
+    border-radius: 6px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.08); /* Sombra suave para dar profundidad */
+    overflow: hidden;
+    border-top: 1px solid #edf2f7;
+    border-right: 1px solid #edf2f7;
+    border-bottom: 1px solid #edf2f7;
+}
+
+/* 2. La fila del título (Padre) ahora es grande y clickeable */
+.padre-row {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 18px; /* Más espacio para que sea fácil tocar con el dedo */
+    font-weight: bold;
+    color: #2c5282;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.padre-row:hover {
+    background: #f7fafc; /* Efecto sutil al pasar el mouse */
+}
+
+/* 3. La magia del Grid: Los hijos ahora se ven en dos columnas */
+.hijos-container {
+    display: none; /* Se activa como 'grid' desde el JS */
+    grid-template-columns: 1fr 1fr; /* Divide el espacio en 2 columnas iguales */
+    gap: 12px;
+    padding: 20px;
+    background: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+}
+
+/* 4. Cada síntoma hijo ahora parece un botoncito individual */
+.hijo-item {
+    background: #ebf8ff;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #2a4365;
+    border: 1px solid #bee3f8;
+    transition: all 0.2s;
+}
+
+.hijo-item:hover {
+    background: #e1f5fe;
+    border-color: #90cdf4;
+}
+
+/* 5. Ajuste para celulares: Si la pantalla es angosta, vuelve a 1 columna */
+@media (max-width: 500px) {
+    .hijos-container {
+        grid-template-columns: 1fr;
+    }
+}
