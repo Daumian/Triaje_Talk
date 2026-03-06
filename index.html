@@ -102,7 +102,7 @@
 
             <div class="nav-buttons">
                 <button type="button" onclick="showPage('hoja3')">&larr; Anterior</button>
-                <button type="button" onclick="mostrarResultados()">Ver resultados</button>
+                <button type="button" onclick="showPage('hoja_registro')">Siguiente: Registro</button>
             </div>
         </div>
 
@@ -125,13 +125,37 @@
             </div>
         </div>
 
+
+        <div id="hoja_registro" class="survey-page">
+            <fieldset>
+                <legend>Registro para la Guardia</legend>
+                <p>Ingresa tus datos para asignar tu turno en el sistema:</p>
+        
+                <label for="dni">DNI (Será tu ID de atención):</label>
+                <input type="number" id="dni" name="dni" placeholder="Ej: 12345678" required>
+                
+                <label for="nombre_reg">Nombre y Apellido:</label>
+                <input type="text" id="nombre_reg" name="nombre_reg" placeholder="Nombre completo">
+
+            </fieldset>
+    
+            <div class="nav-buttons">
+                <button type="button" onclick="enviarAlExcel()">Finalizar y Ver Turno</button>
+            </div>
+        </div>    
+
         <div id="hojaFinal" class="survey-page">
             <fieldset>
+                <div id="msg-registro-exitoso" style="display: none; background-color: #d4edda; color: #155724; padding: 15px; border-radius: 8px; text-align: center; margin-bottom: 20px; font-weight: bold; border: 1px solid #c3e6cb;">
+                ¡Paciente Registrado con éxito!
+                </div>
+
                 <legend>Resultados de la Encuesta</legend>
                 <h2 style="text-align: center;">Puntaje Total de Peligro:</h2>
                 <span id="final-score-value">0</span>
                 <h2 id="final-triage-level" style="text-align: center; margin-top: 20px;"></h2>
             </fieldset>
+
             <div class="nav-buttons center-button">
                 <button type="button" onclick="reiniciarEncuesta()">Reiniciar Encuesta</button>
             </div>

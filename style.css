@@ -291,9 +291,35 @@ input[type="range"] {
     border-color: #90cdf4;
 }
 
+
+
+/* Aseguramos el margen que estaba en el divPadre */
+.grupo-sintoma {
+    margin-bottom: 15px;
+}
+
+/* El fondo gris claro, padding y bordes del padre-row */
+.padre-row {
+    background: #f8f9fa;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+/* Los márgenes que tenía la caja de los hijos (hijos-container) */
+.hijos-container {
+    margin-left: 30px;
+    margin-top: 10px;
+}
+
+/* El margen inferior que tenían los divHijo */
+.hijo-item {
+    margin-bottom: 5px;
+}
+
 /* 5. Ajuste para celulares: Si la pantalla es angosta, vuelve a 1 columna */
 @media (max-width: 500px) {
     .hijos-container {
         grid-template-columns: 1fr;
     }
 }
+

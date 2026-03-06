@@ -1,3 +1,5 @@
+// Tu URL de Google Apps Script (la que termina en /exec)
+const URL_SCRIPT_GOOGLE = 'https://script.google.com/macros/s/AKfycbysTbfQ81e2oEuyJGWfGOaq_DYvTX5XqbuasDcDk0xsNz6ZSI9H4BM9JVosfv6ygKk/exec';
 let sintomasScore = {};
 
 // 1. CARGA INICIAL Y RENDERIZADO DINÁMICO
@@ -26,17 +28,17 @@ function renderizarSintomas() {
         // Creamos el bloque del síntoma principal (Padre)
         const divPadre = document.createElement('div');
         divPadre.className = 'grupo-sintoma';
-        divPadre.style.marginBottom = "15px";
 
         // Usamos la propiedad 'texto' del JSON o transformamos el ID si no existe
         const nombreMostrar = info.texto || idPadre.replace('p_', '').toUpperCase();
 
+        // Mantenemos solo el display:none en línea porque JS lo necesita para ocultar/mostrar
         divPadre.innerHTML = `
-            <div class="padre-row" style="background: #f8f9fa; padding: 10px; border-radius: 5px;">
+            <div class="padre-row">
                 <input type="checkbox" id="${idPadre}" onchange="toggleHijos('${idPadre}')">
                 <label for="${idPadre}"><strong>${nombreMostrar}</strong></label>
             </div>
-            <div id="sub_${idPadre}" class="hijos-container" style="display:none; margin-left: 30px; margin-top: 10px;">
+            <div id="sub_${idPadre}" class="hijos-container" style="display:none;">
             </div>
         `;
 
@@ -49,7 +51,8 @@ function renderizarSintomas() {
                 const nombreHijo = (typeof infoHijo === 'object' ? infoHijo.texto : idHijo.replace(/_/g, ' '));
                 
                 const divHijo = document.createElement('div');
-                divHijo.style.marginBottom = "5px";
+                divHijo.className = 'hijo-item'; // <-- Aplicamos tu clase CSS aquí
+                
                 divHijo.innerHTML = `
                     <input type="checkbox" id="${idHijo}" onchange="calculateScore()">
                     <label for="${idHijo}">${nombreHijo}</label>
@@ -59,6 +62,61 @@ function renderizarSintomas() {
         }
     });
 }
+
+
+
+/**
+ * Reset completo del sistema
+ */
+function reiniciarEncuesta() {
+    // 1. Limpiar todos los campos del formulario
+    document.getElementById('multiStepForm').reset();
+    
+    // 2. Volver a mostrar el marcador de puntos (por si se ocultó)
+    document.getElementById('score-display').style.display = 'block';
+    
+    // 3. OCULTAR el mensaje de éxito del registro anterior (IMPORTANTE)
+    const msgRegistro = document.getElementById('msg-registro-exitoso');
+    if (msgRegistro) msgRegistro.style.display = 'none';
+
+    // 4. Resetear la parte de la narrativa
+    document.getElementById('narrativa').disabled = false;
+    document.getElementById('narrative-buttons').style.display = 'block';
+    document.getElementById('after-send-message').style.display = 'none';
+    
+    // 5. Ocultar todos los subcontenedores de síntomas (acordeones)
+    document.querySelectorAll('.hijos-container').forEach(c => c.style.display = 'none');
+    
+    // 6. Resetear el marcador a 0 y volver al inicio
+    calculateScore();
+    showPage('hoja1');
+}
+
+
+function enviarAlExcel() {
+    const dniVal = document.getElementById('dni').value;
+    const nombreVal = document.getElementById('nombre_reg').value;
+    const scoreVal = document.getElementById('score-value').innerText;
+
+    if (!dniVal) {
+        alert("Por favor, ingresa el DNI.");
+        return;
+    }
+
+    const urlFinal = `${URL_SCRIPT_GOOGLE}?tipo=registro&id=${encodeURIComponent(dniVal)}&nombre=${encodeURIComponent(nombreVal)}&puntaje=${encodeURIComponent(scoreVal)}`;
+
+    // Usamos el modo no-cors para evitar problemas de seguridad del navegador
+    fetch(urlFinal, { mode: 'no-cors' })
+    .then(() => {
+        document.getElementById('msg-registro-exitoso').style.display = 'block';
+        mostrarResultados();
+    })
+    .catch(err => {
+        console.error("Error en el envío:", err);
+        mostrarResultados();
+    });
+}
+
 
 /**
  * Muestra/Oculta los subtítulos y recalcula el puntaje
@@ -128,6 +186,7 @@ function calculateScore() {
         }
     }
 
+
     // 4. Síntomas Dinámicos (Padres e Hijos) - Se mantiene igual
     Object.entries(sintomasScore).forEach(([idPadre, info]) => {
         // Filtramos para no procesar la "config_puntajes" como si fuera un síntoma
@@ -149,6 +208,8 @@ function calculateScore() {
 
     document.getElementById('score-value').innerText = totalScore;
 }
+
+
 
 
 /**
@@ -176,32 +237,8 @@ function mostrarResultados() {
     showPage('hojaFinal');
 }
 
-/**
- * Envío de datos a n8n
- */
-function enviarNarrativa() {
-    const formData = {
-        respondiente: document.querySelector('input[name="respondiente"]:checked')?.value || 'N/A',
-        edad: document.getElementById('edad').value,
-        sexo: document.querySelector('input[name="sexo"]:checked')?.value || 'N/A',
-        embarazo: document.querySelector('input[name="embarazo"]:checked')?.value || 'no',
-        narrativa: document.getElementById('narrativa').value,
-        puntaje: document.getElementById('score-value').innerText,
-        origen: "github-pages"
-    };
 
-    fetch("https://creactivehub.app.n8n.cloud/webhook/from-ghpages", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData)
-    })
-    .then(() => {
-        document.getElementById('narrative-buttons').style.display = 'none';
-        document.getElementById('narrativa').disabled = true;
-        document.getElementById('after-send-message').style.display = 'block';
-    })
-    .catch(err => console.error("Error al enviar:", err));
-}
+
 
 /**
  * Reset completo del sistema
@@ -209,18 +246,50 @@ function enviarNarrativa() {
 function reiniciarEncuesta() {
     document.getElementById('multiStepForm').reset();
     document.getElementById('score-display').style.display = 'block';
-    document.getElementById('narrativa').disabled = false;
-    document.getElementById('narrative-buttons').style.display = 'block';
+    
+    // Limpiar mensajes de éxito
+    const msgRegistro = document.getElementById('msg-registro-exitoso');
+    if (msgRegistro) msgRegistro.style.display = 'none';
     document.getElementById('after-send-message').style.display = 'none';
     
-    // Ocultar todos los subcontenedores de síntomas
-    document.querySelectorAll('.hijos-container').forEach(c => c.style.display = 'none');
+    // Reactivar narrativa
+    document.getElementById('narrativa').disabled = false;
+    document.getElementById('narrative-buttons').style.display = 'block';
     
+    document.querySelectorAll('.hijos-container').forEach(c => c.style.display = 'none');
     calculateScore();
     showPage('hoja1');
 }
 
-// Inicialización
+/**
+ * Envio a Excel
+ */
+
+function enviarNarrativa() {
+    const params = {
+        tipo: 'narrativa',
+        respondiente: document.querySelector('input[name="respondiente"]:checked')?.value || 'N/A',
+        edad: document.getElementById('edad').value,
+        sexo: document.querySelector('input[name="sexo"]:checked')?.value || 'N/A',
+        embarazo: document.querySelector('input[name="embarazo"]:checked')?.value || 'no',
+        narrativa: document.getElementById('narrativa').value,
+        puntaje: document.getElementById('score-value').innerText
+    };
+
+    const query = Object.keys(params).map(k => `${k}=${encodeURIComponent(params[k])}`).join('&');
+    const urlFinal = `${URL_SCRIPT_GOOGLE}?${query}`;
+
+    fetch(urlFinal, { mode: 'no-cors' })
+    .then(() => {
+        document.getElementById('narrative-buttons').style.display = 'none';
+        document.getElementById('narrativa').disabled = true;
+        document.getElementById('after-send-message').style.display = 'block';
+    })
+    .catch(err => console.error("Error en narrativa:", err));
+}
+
+
+// Inicialización de Eventos
 document.addEventListener('DOMContentLoaded', () => showPage('hoja1'));
 const mainForm = document.getElementById('multiStepForm');
 mainForm.addEventListener('change', calculateScore);
